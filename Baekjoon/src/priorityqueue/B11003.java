@@ -25,8 +25,8 @@ import java.util.*;
 public class B11003 {
 	static int n, l;
 	static int[] arr;
-//	static Deque<data> d;
-	static PriorityQueue<data> queue;
+	static Deque<data> d;
+//	static PriorityQueue<data> queue;
 	
 	static class data {
 		int value;
@@ -49,30 +49,30 @@ public class B11003 {
 		l = Integer.parseInt(st.nextToken());
 		
 		arr = new int[n];
-//		d = new ArrayDeque<>();
-		queue = new PriorityQueue<>(((o1, o2) -> o1.value - o2.value));
+		d = new ArrayDeque<>();
+//		queue = new PriorityQueue<>(((o1, o2) -> o1.value - o2.value));
 		
 		st = new StringTokenizer(br.readLine());
 		
 		for (int i = 0; i < n; i++) {
 			int inputValue = Integer.parseInt(st.nextToken());
-//			while (!d.isEmpty() && d.getLast().value > inputValue) {
-//				d.removeLast();
-//			}
-			data input = new data(inputValue, i);
-			//d.addLast(input);
-			queue.add(input);
-//			if (d.getFirst().idx <= i - l) {
-//				d.removeFirst();
-//			}
-			if (i >= l) {
-				while (queue.peek().idx < i - l + 1) {
-					queue.poll();
-				}
+			while (!d.isEmpty() && d.getLast().value > inputValue) {
+				d.removeLast();
 			}
+			data input = new data(inputValue, i);
+			d.addLast(input);
+//			queue.add(input);
+			if (d.getFirst().idx <= i - l) {
+				d.removeFirst();
+			}
+//			if (i >= l) {
+//				while (queue.peek().idx < i - l + 1) {
+//					queue.poll();
+//				}
+//			}
 			
-//			bw.write(d.getFirst().value + " ");
-			bw.write(queue.peek().value + " ");
+			bw.write(d.getFirst().value + " ");
+//			bw.write(queue.peek().value + " ");
 		}
 		
 		bw.flush();
