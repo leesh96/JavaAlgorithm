@@ -1,4 +1,4 @@
-package class2;
+package bojclass.class2;
 
 import java.io.*;
 import java.util.LinkedList;
