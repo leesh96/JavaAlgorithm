@@ -5,6 +5,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 
+/*
+플랫폼 : 백준
+문제번호 : 1865
+문제제목 : 웜홀
+난이도 : 골드 3
+제한사항 : 2초/128MB
+알고리즘 분류 : 그래프 이론, 벨만-포드
+
+알고리즘 설명
+벨만 포드 알고리즘
+
+채점 결과 : 456ms/47448KB
+풀이 날짜 : 2021/10/30
+*/
+
 public class B1865 {
     static int tc, n, m, w;
     static ArrayList<Edge>[] graph;
