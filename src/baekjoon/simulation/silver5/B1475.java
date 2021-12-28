@@ -1,4 +1,4 @@
-package baekjoon.simulation.bronze1;
+package baekjoon.simulation.silver5;
 
 import java.io.*;
 import java.util.HashMap;

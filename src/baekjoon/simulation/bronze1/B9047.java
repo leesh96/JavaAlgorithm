@@ -1,4 +1,4 @@
-package baekjoon.simulation;
+package baekjoon.simulation.bronze1;
 
 import java.io.*;
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package baekjoon.simulation;
+package baekjoon.simulation.silver5;
 
 import java.io.*;
 import java.util.StringTokenizer;
