@@ -2,15 +2,17 @@ package datastructure.linkedlist;
 
 import java.util.NoSuchElementException;
 
-public class DoubleLinkedList<E> implements LinkedList<E> {
+public class DoubleCircularLinkedList<E> implements LinkedList<E> {
+
+    // 이중 원형 연결리스트는 head 포인터가 첫 번째 노드를 항상 가리키며 마지막 노드의 다음 링크 필드가 첫 번째 노드를 가리킴
+    // tail 포인터가 필요 없음
+
     private DoubleNode<E> head;
-    private DoubleNode<E> tail;
     private int size;
 
-    public DoubleLinkedList() {
-        this.head = null;
-        this.tail = null;
-        this.size = 0;
+    public DoubleCircularLinkedList() {
+        head = null;
+        size = 0;
     }
 
     @Override
@@ -27,15 +29,13 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
     }
 
     private DoubleNode<E> search(int idx) {
-        DoubleNode<E> ptr;
-        if (idx < (size >> 1)) {
-            ptr = head;
+        DoubleNode<E> ptr = head;
+        if (idx <= (size >> 1)) {
             for (int i = 0; i < idx; i++) {
                 ptr = ptr.next;
             }
         } else {
-            ptr = tail;
-            for (int i = size - 1; i > idx; i--) {
+            for (int i = size - 1; i >= idx; i--) {
                 ptr = ptr.prev;
             }
         }
@@ -47,9 +47,12 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
         final DoubleNode<E> first = head;
         final DoubleNode<E> newNode = new DoubleNode<>(null, value, first);
         head = newNode;
-        if (first == null) { // addFirst to empty list
-            tail = newNode;
+        if (first == null) {
+            newNode.prev = newNode;
+            newNode.next = newNode;
         } else {
+            newNode.prev = first.prev;
+            first.prev.next = newNode;
             first.prev = newNode;
         }
         size++;
@@ -57,13 +60,16 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
 
     @Override
     public void add(E value) {
-        final DoubleNode<E> last = tail;
-        final DoubleNode<E> newNode = new DoubleNode<>(last, value, null);
-        tail = newNode;
-        if (last == null) { // addLast to empty list
+        final DoubleNode<E> last = head;
+        final DoubleNode<E> newNode = new DoubleNode<>(null, value, last);
+        if (last == null) {
             head = newNode;
+            newNode.prev = newNode;
+            newNode.next = newNode;
         } else {
-            last.next = newNode;
+            newNode.prev = last.prev;
+            last.prev.next = newNode;
+            last.prev = newNode;
         }
         size++;
     }
@@ -83,11 +89,7 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
         final DoubleNode<E> prev = next.prev;
         final DoubleNode<E> newNode = new DoubleNode<>(prev, value, next);
         next.prev = newNode;
-        if (prev == null) {
-            head = newNode;
-        } else {
-            prev.next = newNode;
-        }
+        prev.next = newNode;
         size++;
     }
 
@@ -99,15 +101,18 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
         }
 
         final E element = first.value;
+        final DoubleNode<E> prev = first.prev;
         final DoubleNode<E> next = first.next;
-        first.value = null;
-        first.next = null;
-        head = next;
-        if (next == null) {
-            tail = null;
+        if (next == first && prev == first) {
+            head = null;
         } else {
-            next.prev = null;
+            head = next;
+            next.prev = prev;
+            prev.next = next;
         }
+        first.value = null;
+        first.prev = null;
+        first.next = null;
         size--;
 
         return element;
@@ -115,44 +120,46 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
 
     @Override
     public E removeLast() {
-        DoubleNode<E> last = tail;
+        DoubleNode<E> last = head;
         if (last == null) {
             throw new NoSuchElementException();
         }
 
+        last = last.prev;
         final E element = last.value;
         final DoubleNode<E> prev = last.prev;
-        last.value = null;
-        last.prev = null;
-        tail = prev;
-        if (prev == null) {
+        final DoubleNode<E> next = last.next;
+        if (prev == last && next == last) {
             head = null;
         } else {
-            prev.next = null;
+            next.prev = prev;
+            prev.next = next;
         }
+        last.value = null;
+        last.prev = null;
+        last.next = null;
         size--;
 
         return element;
     }
 
     private E unlink(DoubleNode<E> n) {
+        if (n == head) {
+            return removeFirst();
+        }
+
         final E element = n.value;
         final DoubleNode<E> prev = n.prev;
         final DoubleNode<E> next = n.next;
-
-        if (prev == null) {
-            head = next;
+        if (prev == next) {
+            head = null;
         } else {
             prev.next = next;
-            n.prev = null;
-        }
-        if (next == null) {
-            tail = prev;
-        } else {
             next.prev = prev;
-            n.next = null;
         }
         n.value = null;
+        n.prev = null;
+        n.next = null;
         size--;
 
         return element;
@@ -160,20 +167,27 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
 
     @Override
     public boolean remove(Object obj) {
+        DoubleNode<E> ptr = head;
+        if (ptr == null) {
+            return false;
+        }
+
         if (obj == null) {
-            for (DoubleNode<E> ptr = head; ptr != null; ptr = ptr.next) {
+            do {
                 if (ptr.value == null) {
                     unlink(ptr);
                     return true;
                 }
-            }
+                ptr = ptr.next;
+            } while (ptr != head);
         } else {
-            for (DoubleNode<E> ptr = head; ptr != null; ptr = ptr.next) {
+            do {
                 if (obj.equals(ptr.value)) {
                     unlink(ptr);
                     return true;
                 }
-            }
+                ptr = ptr.next;
+            } while (ptr != head);
         }
 
         return false;
@@ -207,19 +221,24 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
     @Override
     public int indexOf(Object obj) {
         int idx = 0;
-        if (obj == null) {
-            for (DoubleNode<E> ptr = head; ptr != null; ptr = ptr.next) {
-                if (ptr.value == null) {
-                    return idx;
-                }
-                idx++;
-            }
-        } else {
-            for (DoubleNode<E> ptr = head; ptr != null; ptr = ptr.next) {
-                if (obj.equals(ptr.value)) {
-                    return idx;
-                }
-                idx++;
+        DoubleNode<E> ptr = head;
+        if (ptr != null) {
+            if (obj == null) {
+                do {
+                    if (ptr.value == null) {
+                        return idx;
+                    }
+                    idx++;
+                    ptr = ptr.next;
+                } while (ptr != head);
+            } else {
+                do {
+                    if (obj.equals(ptr.value)) {
+                        return idx;
+                    }
+                    idx++;
+                    ptr = ptr.next;
+                } while (ptr != head);
             }
         }
 
@@ -228,19 +247,24 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
 
     public int lastIndexOf(Object obj) {
         int idx = size;
-        if (obj == null) {
-            for (DoubleNode<E> ptr = tail; ptr != null; ptr = ptr.prev) {
-                idx--;
-                if (ptr.value == null) {
-                    return idx;
-                }
-            }
-        } else {
-            for (DoubleNode<E> ptr = tail; ptr != null; ptr = ptr.prev) {
-                idx--;
-                if (obj.equals(ptr.value)) {
-                    return idx;
-                }
+        DoubleNode<E> ptr = head;
+        if (ptr != null) {
+            if (obj == null) {
+                do {
+                    idx--;
+                    if (ptr.value == null) {
+                        return idx;
+                    }
+                    ptr = ptr.next;
+                } while (ptr != head);
+            } else {
+                do {
+                    idx--;
+                    if (obj.equals(ptr.value)) {
+                        return idx;
+                    }
+                    ptr = ptr.next;
+                } while (ptr != head);
             }
         }
 
@@ -254,23 +278,30 @@ public class DoubleLinkedList<E> implements LinkedList<E> {
 
     @Override
     public void clear() {
-        for (DoubleNode<E> ptr = head; ptr != null; ) {
-            final DoubleNode<E> next = ptr.next;
-            ptr.value = null;
-            ptr.prev = null;
-            ptr.next = null;
-            ptr = next;
+        DoubleNode<E> ptr = head;
+        if (ptr != null) {
+            do {
+                final DoubleNode<E> next = ptr.next;
+                ptr.value = null;
+                ptr.prev = null;
+                ptr.next = null;
+                ptr = next;
+            } while (ptr != head);
         }
-        head = tail = null;
+        head = null;
         size = 0;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("DoubleLinkedList(");
-        for (DoubleNode<E> ptr = head; ptr != null; ptr = ptr.next) {
-            sb.append(ptr);
+        sb.append("DoubleCircularLinkedList(");
+        DoubleNode<E> ptr = head;
+        if (ptr != null) {
+            do {
+                sb.append(ptr);
+                ptr = ptr.next;
+            } while (ptr != head);
         }
         sb.append(")");
         return sb.toString();
